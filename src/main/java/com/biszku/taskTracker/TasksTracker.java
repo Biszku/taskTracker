@@ -3,12 +3,13 @@ package main.java.com.biszku.taskTracker;
 import java.util.*;
 
 public class TasksTracker {
+
     private static final Scanner scanner = new Scanner(System.in);
     private static int idCounter = 0;
-    private List<Task> tasks;
+    private HashMap<Integer,Task> tasks;
 
     public TasksTracker() {
-        this.tasks = new ArrayList<>();
+        this.tasks = new HashMap<>();
     }
 
     public void start() {
@@ -17,18 +18,25 @@ public class TasksTracker {
             String operationType = commands.pop();
             switch (operationType) {
                 case "ADD":
+                    addTask(commands.pop());
                     break;
                 case "UPDATE":
+                    tasks.get(Integer.parseInt(commands.pop())).update(commands.pop());
                     break;
                 case "DELETE":
+                    tasks.remove(Integer.parseInt(commands.pop()));
                     break;
                 case "MARK-IN-PROGRESS":
+                    tasks.get(Integer.parseInt(commands.pop())).markAsInProgress();
                     break;
                 case "MARK-DONE":
+                    tasks.get(Integer.parseInt(commands.pop())).markAsDone();
                     break;
                 case "LIST":
+                    printTasks(commands);
                     break;
                 case "EXIT":
+                    System.exit(0);
                     return;
                 default:
                     System.out.println("Unknown command");
@@ -48,8 +56,29 @@ public class TasksTracker {
         return commandsStack;
     }
 
-    private void addTask(Task task) {
-        Task newTask = new Task(idCounter++);
-        tasks.add(newTask);
+    private void addTask(String description) {
+        Task newTask = new Task(description);
+        tasks.put(++idCounter, newTask);
+    }
+
+    private void printTasks(Stack<String> commands) {
+
+        try {
+            Status status = Status.valueOf(commands.pop());
+            for (Map.Entry<Integer, Task> entry : tasks.entrySet()) {
+                if (getTaskStatus(entry).equals(status)) {
+                    System.out.println("id = " + entry.getKey() + " " + entry.getValue());
+                }
+            }
+        } catch (EmptyStackException e) {
+            for (Map.Entry<Integer, Task> entry : tasks.entrySet()) {
+                System.out.println("id = " + entry.getKey() + " " + entry.getValue());
+            }
+        }
+
+    }
+
+    public Status getTaskStatus(Map.Entry<Integer, Task> task) {
+        return task.getValue().getStatus();
     }
 }
