@@ -3,6 +3,7 @@ package main.java.com.biszku.taskTracker;
 import java.time.LocalDate;
 
 public class Task {
+
     private String description;
     private Status status;
     private final LocalDate createdAt;
