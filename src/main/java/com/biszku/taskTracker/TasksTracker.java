@@ -1,12 +1,13 @@
 package main.java.com.biszku.taskTracker;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class TasksTracker {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static int idCounter = 0;
-    private final HashMap<Integer,Task> tasks = new HashMap<>();
+    private final List<Task> tasks = new ArrayList<>(40);
 
     public static void run() {
         TasksTracker tasksTracker = new TasksTracker();
@@ -64,50 +65,69 @@ public class TasksTracker {
 
     private void addTask(Stack<String> commands) {
         String description = commands.pop();
-        Task newTask = new Task(description);
-        tasks.put(++idCounter, newTask);
+        Task newTask = new Task(++idCounter, description);
+        tasks.add(newTask);
     }
 
     private void updateTask(Stack<String> commands) {
-        int taskId = Integer.parseInt(commands.pop());
+        int taskIndex = findTaskIndexById(commands);
         String description = commands.pop();
-        tasks.get(taskId).update(description);
+        tasks.get(taskIndex).update(description);
     }
 
     private void deleteTask(Stack<String> commands) {
-        int taskId = Integer.parseInt(commands.pop());
-        tasks.remove(taskId);
+        int taskIndex = findTaskIndexById(commands);
+        tasks.remove(taskIndex);
     }
 
     private void markAsInProgress(Stack<String> commands) {
-        int taskId = Integer.parseInt(commands.pop());
-        tasks.get(taskId).markAsInProgress();
+        int taskIndex = findTaskIndexById(commands);
+        tasks.get(taskIndex).markAsInProgress();
     }
 
     private void markAsDone(Stack<String> commands) {
+        int taskIndex = findTaskIndexById(commands);
+        tasks.get(taskIndex).markAsDone();
+    }
+
+    private int findTaskIndexById(Stack<String> commands) {
         int taskId = Integer.parseInt(commands.pop());
-        tasks.get(taskId).markAsDone();
+        return findTaskIndexById(taskId);
+    }
+
+    private int findTaskIndexById(int taskId) {
+        int startIndex = 0;
+        int endIndex = tasks.size() - 1;
+
+        while (startIndex <= endIndex) {
+            int middleIndex = (startIndex + endIndex) / 2;
+            if (tasks.get(middleIndex).getId() == taskId) {
+                return middleIndex;
+            } else if (tasks.get(middleIndex).getId() < taskId) {
+                startIndex = middleIndex + 1;
+            } else {
+                endIndex = middleIndex - 1;
+            }
+        }
+
+        return -1;
     }
 
     private void printTasks(Stack<String> commands) {
 
+        Status status = null;
+
         try {
-            Status status = Status.valueOf(commands.pop());
-            for (Map.Entry<Integer, Task> entry : tasks.entrySet()) {
-                if (getTaskStatus(entry).equals(status)) {
-                    System.out.println("id = " + entry.getKey() + " " + entry.getValue());
-                }
-            }
-        } catch (EmptyStackException e) {
-            for (Map.Entry<Integer, Task> entry : tasks.entrySet()) {
-                System.out.println("id = " + entry.getKey() + " " + entry.getValue());
-            }
+            if (!commands.isEmpty())
+                status = Status.valueOf(commands.pop());
+            tasks.stream().filter(getTaskPredicate(status)).forEach(System.out::println);
         } catch (IllegalArgumentException e) {
             System.out.println("Unknown status");
         }
     }
 
-    public Status getTaskStatus(Map.Entry<Integer, Task> task) {
-        return task.getValue().getStatus();
+    private Predicate<Task> getTaskPredicate(Status status) {
+        Predicate<Task> taskPredicate = status == null ? task -> true : task -> task.getStatus().equals(status);
+        return taskPredicate;
     }
 }
