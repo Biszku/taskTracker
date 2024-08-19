@@ -4,16 +4,22 @@ import java.time.LocalDate;
 
 public class Task {
 
+    private final int id;
     private String description;
     private Status status;
     private final LocalDate createdAt;
     private LocalDate updatedAt;
 
-    public Task(String description) {
+    public Task(int id, String description) {
+        this.id = id;
         this.description = description;
         this.status = Status.TODO;
         this.createdAt = LocalDate.now();
         this.updatedAt = LocalDate.now();
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Status getStatus() {
@@ -37,9 +43,10 @@ public class Task {
 
     @Override
     public String toString() {
-        return ("description = %s " +
+        return ("id = %d " +
+                "description = %s " +
                 "status = %s " +
                 "created = %s " +
-                "updated = %s").formatted(description, status, createdAt, updatedAt);
+                "updated = %s").formatted(id, description, status, createdAt, updatedAt);
     }
 }
