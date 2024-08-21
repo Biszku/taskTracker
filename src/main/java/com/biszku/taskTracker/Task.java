@@ -1,6 +1,7 @@
 package main.java.com.biszku.taskTracker;
 
 import java.time.LocalDate;
+import java.util.StringJoiner;
 
 public class Task {
 
@@ -48,5 +49,15 @@ public class Task {
                 "status = %s " +
                 "created = %s " +
                 "updated = %s").formatted(id, description, status, createdAt, updatedAt);
+    }
+
+    public String toJSON() {
+        return new StringJoiner(", ", "{", "}")
+                .add("\"id\":" + id)
+                .add("\"description\":\"" + description + "\"")
+                .add("\"status\":" + status)
+                .add("\"createdAt\":" + createdAt)
+                .add("\"updatedAt\":" + updatedAt)
+                .toString();
     }
 }
