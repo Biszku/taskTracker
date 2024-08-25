@@ -12,11 +12,16 @@ public class Task {
     private LocalDate updatedAt;
 
     public Task(int id, String description) {
+        this(id, description, Status.TODO, LocalDate.now(), LocalDate.now());
+    }
+
+    public Task(int id, String description, Status status,
+                LocalDate createdAt, LocalDate updatedAt) {
         this.id = id;
         this.description = description;
-        this.status = Status.TODO;
-        this.createdAt = LocalDate.now();
-        this.updatedAt = LocalDate.now();
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public int getId() {
@@ -44,11 +49,11 @@ public class Task {
 
     public String toJSON() {
         return new StringJoiner(", ", "{", "}")
-                .add("\"id\":" + id)
+                .add("\"id\":\"" + id + "\"")
                 .add("\"description\":\"" + description + "\"")
-                .add("\"status\":" + status)
-                .add("\"createdAt\":" + createdAt)
-                .add("\"updatedAt\":" + updatedAt)
+                .add("\"status\":\"" + status + "\"")
+                .add("\"createdAt\":\"" + createdAt + "\"")
+                .add("\"updatedAt\":\"" + updatedAt + "\"")
                 .toString();
     }
 
