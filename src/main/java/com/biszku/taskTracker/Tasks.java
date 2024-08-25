@@ -12,12 +12,17 @@ public class Tasks implements Observable {
 
     public static void run() {
         Tasks tasksTracker = new Tasks();
-        new FileHandler("tasks.json", tasksTracker);
+        FileHandler fileHandler = new FileHandler("tasks.json", tasksTracker);
+        fileHandler.loadFromFile();
         tasksTracker.menuController();
     }
 
     public List<Task> getTasks() {
         return tasks;
+    }
+
+    public void setIdCounter(int idCounter) {
+        this.idCounter = idCounter;
     }
 
     private void menuController() {
