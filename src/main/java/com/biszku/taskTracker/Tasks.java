@@ -3,15 +3,21 @@ package main.java.com.biszku.taskTracker;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class TasksTracker {
+public class Tasks implements Observable {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static int idCounter = 0;
+    private final List<Observer> observers = new ArrayList<>();
     private final List<Task> tasks = new ArrayList<>(40);
 
     public static void run() {
-        TasksTracker tasksTracker = new TasksTracker();
+        Tasks tasksTracker = new Tasks();
+        new FileHandler("tasks.json", tasksTracker);
         tasksTracker.menuController();
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
     }
 
     private void menuController() {
@@ -67,27 +73,32 @@ public class TasksTracker {
         String description = commands.pop();
         Task newTask = new Task(++idCounter, description);
         tasks.add(newTask);
+        notifyObservers();
     }
 
     private void updateTask(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
         String description = commands.pop();
         tasks.get(taskIndex).update(description);
+        notifyObservers();
     }
 
     private void deleteTask(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
         tasks.remove(taskIndex);
+        notifyObservers();
     }
 
     private void markAsInProgress(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
         tasks.get(taskIndex).markAsInProgress();
+        notifyObservers();
     }
 
     private void markAsDone(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
         tasks.get(taskIndex).markAsDone();
+        notifyObservers();
     }
 
     private int findTaskIndexById(Stack<String> commands) {
@@ -127,7 +138,21 @@ public class TasksTracker {
     }
 
     private Predicate<Task> getTaskPredicate(Status status) {
-        Predicate<Task> taskPredicate = status == null ? task -> true : task -> task.getStatus().equals(status);
-        return taskPredicate;
+        return status == null ? task -> true : task -> task.getStatus().equals(status);
+    }
+
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        observers.forEach(Observer::update);
     }
 }
