@@ -42,15 +42,6 @@ public class Task {
         this.updatedAt = LocalDate.now();
     }
 
-    @Override
-    public String toString() {
-        return ("id = %d " +
-                "description = %s " +
-                "status = %s " +
-                "created = %s " +
-                "updated = %s").formatted(id, description, status, createdAt, updatedAt);
-    }
-
     public String toJSON() {
         return new StringJoiner(", ", "{", "}")
                 .add("\"id\":" + id)
@@ -59,5 +50,14 @@ public class Task {
                 .add("\"createdAt\":" + createdAt)
                 .add("\"updatedAt\":" + updatedAt)
                 .toString();
+    }
+
+    @Override
+    public String toString() {
+        return ("id = %d " +
+                "description = %s " +
+                "status = %s " +
+                "created = %s " +
+                "updated = %s").formatted(id, description, status, createdAt, updatedAt);
     }
 }
