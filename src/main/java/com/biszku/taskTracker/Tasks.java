@@ -22,7 +22,7 @@ public class Tasks implements Observable {
     }
 
     public void setIdCounter(int idCounter) {
-        this.idCounter = idCounter;
+        Tasks.idCounter = idCounter;
     }
 
     private void menuController() {
