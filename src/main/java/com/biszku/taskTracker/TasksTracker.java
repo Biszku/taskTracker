@@ -3,18 +3,22 @@ package main.java.com.biszku.taskTracker;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class Tasks implements Observable {
+public class TasksTracker implements Observable {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static int idCounter = 0;
-    private final List<Observer> observers = new ArrayList<>();
-    private final List<Task> tasks = new ArrayList<>(40);
+    private final List<Observer> observers;
+    private final List<Task> tasks;
 
-    public static void run() {
-        Tasks tasksTracker = new Tasks();
-        FileHandler fileHandler = new FileHandler("tasks.json", tasksTracker);
+    public TasksTracker() {
+        observers = new ArrayList<>();
+        tasks = new ArrayList<>(40);
+    }
+
+    public void run() {
+        FileHandler fileHandler = new FileHandler("tasks.json", this);
         fileHandler.loadFromFile();
-        tasksTracker.menuController();
+        readInput();
     }
 
     public List<Task> getTasks() {
@@ -22,26 +26,53 @@ public class Tasks implements Observable {
     }
 
     public void setIdCounter(int idCounter) {
-        Tasks.idCounter = idCounter;
+        TasksTracker.idCounter = idCounter;
     }
 
-    private void menuController() {
+    private void readInput() {
 
         while (true) {
-            Stack<String> commands = getCommands();
-            boolean executed = executeCommand(commands);
-            if (!executed) break;
+            try {
+                Stack<String> commands = createCommandStack();
+                boolean executed = executeCommand(commands);
+                if (!executed) break;
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
-    private Stack<String> getCommands() {
+    private Stack<String> createCommandStack() {
 
         Stack<String> commandsStack = new Stack<>();
-        String[] commandStructure = scanner.nextLine().toUpperCase().split(" ");
+        String[] commandStructure = scanner.nextLine().toLowerCase().split(" ");
+
+        try {
+            commandStructure[1] = commandStructure[1].toUpperCase();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw createIllegalArgumentException("Invalid syntax!\n" +
+                    "Enter command in format \"task-cli <operationType>\"");
+        }
+
         for (int i = commandStructure.length - 1; i >= 0; i--) {
             commandsStack.push(commandStructure[i]);
         }
+
+        if (!Objects.equals(commandsStack.pop(), "task-cli")) {
+            throw createIllegalArgumentException("Invalid syntax!\n" +
+                    "Enter command in format \"task-cli <operationType>\"");
+        }
+
         return commandsStack;
+    }
+
+    private IllegalArgumentException createIllegalArgumentException(String message) {
+        return new IllegalArgumentException("\u001B[31m" + message + "\u001B[0m");
+    }
+
+    private IllegalArgumentException createEmptyStackException(String message) {
+        return new IllegalArgumentException("\u001B[31mInvalid syntax!\n" +
+                "Enter arguments in format: " + message + "\u001B[0m");
     }
 
     private boolean executeCommand(Stack<String> commands) {
@@ -69,15 +100,25 @@ public class Tasks implements Observable {
             case "EXIT":
                 return false;
             default:
-                System.out.println("Unknown command");
+                System.out.println("\u001B[31m" +
+                        "Unknown command!\n" +
+                        "Enter one of the following commands\n" +
+                        "add, update, delete, mark-in-progress, mark-done, list, exit" +
+                        "\u001B[0m");
         }
         return true;
     }
 
     private void addTask(Stack<String> commands) {
-        String description = commands.pop();
-        Task newTask = new Task(++idCounter, description);
-        tasks.add(newTask);
+
+        try {
+            String description = commands.pop();
+            Task newTask = new Task(++idCounter, description);
+            tasks.add(newTask);
+        } catch (EmptyStackException e) {
+            throw createEmptyStackException("add <description>");
+        }
+
         notifyObservers();
     }
 
