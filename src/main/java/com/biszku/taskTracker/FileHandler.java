@@ -11,18 +11,23 @@ import java.util.stream.Collectors;
 public class FileHandler implements Observer {
 
     private final String filePath;
-    private final Tasks tasks;
+    private final TasksTracker tasks;
 
-    public FileHandler(String filePath, Tasks tasks) {
+    public FileHandler(String filePath, TasksTracker tasks) {
         this.filePath = filePath;
         this.tasks = tasks;
         tasks.addObserver(this);
     }
 
     public void loadFromFile() {
-        File file = new File("tasks.json");
+        File file = new File(filePath);
 
         if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             return;
         }
 
