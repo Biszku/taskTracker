@@ -48,6 +48,7 @@ public class FileHandler implements Observer {
     }
 
     private Task parseFromJSONToTask(String line) {
+
         String[] plainLine = line.replace("\"","")
                 .replace("}","")
                 .replace("{","")
@@ -76,6 +77,7 @@ public class FileHandler implements Observer {
     }
 
     private void saveToFile(String tasksInJSON) {
+
         try {
             Files.writeString(filePath, tasksInJSON);
         } catch (IOException e) {

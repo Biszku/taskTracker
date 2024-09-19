@@ -48,6 +48,7 @@ public class Task {
     }
 
     public String toJSON() {
+
         return new StringJoiner(", ", "{", "}")
                 .add("\"id\":\"" + id + "\"")
                 .add("\"description\":\"" + description + "\"")
@@ -59,6 +60,7 @@ public class Task {
 
     @Override
     public String toString() {
+
         return ("id = %d " +
                 "description = %s " +
                 "status = %s " +

@@ -3,7 +3,7 @@ package main.java.com.biszku.taskTracker;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class TasksTracker implements Observable  {
+public class TasksTracker implements Observable {
 
     private static int idCounter;
     private final List<Task> tasks;
@@ -11,10 +11,13 @@ public class TasksTracker implements Observable  {
 
     public TasksTracker() {
         observers = new ArrayList<>();
-
         FileHandler fileHandler = new FileHandler("tasks.json", this);
         tasks = fileHandler.loadFromFile();
         idCounter = !tasks.isEmpty() ? tasks.get(tasks.size() - 1).getId() : 0;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
     }
 
     public void run() {
@@ -28,14 +31,6 @@ public class TasksTracker implements Observable  {
                 System.out.println(e.getMessage());
             }
         }
-    }
-
-    public List<Task> getTasks() {
-        return tasks;
-    }
-
-    public void setIdCounter(int idCounter) {
-        TasksTracker.idCounter = idCounter;
     }
 
     private Stack<String> createCommandStack() {
@@ -61,22 +56,17 @@ public class TasksTracker implements Observable  {
         return commandsStack;
     }
 
-    private String readInput() {
-        return new Scanner(System.in).nextLine();
-    }
-
     private IllegalArgumentException createIllegalArgumentException(String message) {
         return new IllegalArgumentException("\u001B[31m" + message + "\u001B[0m");
     }
 
-    private IllegalArgumentException createEmptyStackException(String message) {
-        return new IllegalArgumentException("\u001B[31mInvalid syntax!\n" +
-                "Enter arguments in format: " + message + "\u001B[0m");
+    private String readInput() {
+        return new Scanner(System.in).nextLine();
     }
 
     private boolean executeCommand(Stack<String> commands) {
-
         String operationType = commands.pop();
+
         switch (operationType) {
             case "ADD":
                 addTask(commands);
@@ -117,38 +107,55 @@ public class TasksTracker implements Observable  {
         } catch (EmptyStackException e) {
             throw createEmptyStackException("add <description>");
         }
-
         notifyObservers();
+    }
+
+    private IllegalArgumentException createEmptyStackException(String message) {
+        return new IllegalArgumentException("\u001B[31mInvalid syntax!\n" +
+                "Enter arguments in format: " + message + "\u001B[0m");
     }
 
     private void updateTask(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
-        String description = commands.pop();
-        tasks.get(taskIndex).update(description);
+
+        try {
+            String description = commands.pop();
+            tasks.get(taskIndex).update(description);
+        } catch (EmptyStackException e) {
+            throw createEmptyStackException("add <description>");
+        }
         notifyObservers();
     }
 
     private void deleteTask(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
+
         tasks.remove(taskIndex);
         notifyObservers();
     }
 
     private void markAsInProgress(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
+
         tasks.get(taskIndex).markAsInProgress();
         notifyObservers();
     }
 
     private void markAsDone(Stack<String> commands) {
         int taskIndex = findTaskIndexById(commands);
+
         tasks.get(taskIndex).markAsDone();
         notifyObservers();
     }
 
     private int findTaskIndexById(Stack<String> commands) {
-        int taskId = Integer.parseInt(commands.pop());
-        return findTaskIndexById(taskId);
+
+        try {
+            int taskId = Integer.parseInt(commands.pop());
+            return findTaskIndexById(taskId);
+        } catch (EmptyStackException e) {
+            throw createEmptyStackException("add <description>");
+        }
     }
 
     private int findTaskIndexById(int taskId) {
@@ -165,17 +172,14 @@ public class TasksTracker implements Observable  {
                 endIndex = middleIndex - 1;
             }
         }
-
         return -1;
     }
 
     private void printTasks(Stack<String> commands) {
-
         Status status = null;
 
         try {
-            if (!commands.isEmpty())
-                status = Status.valueOf(commands.pop());
+            if (!commands.isEmpty()) status = Status.valueOf(commands.pop());
             tasks.stream().filter(getTaskPredicate(status)).forEach(System.out::println);
         } catch (IllegalArgumentException e) {
             System.out.println("Unknown status");
