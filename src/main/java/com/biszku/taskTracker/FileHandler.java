@@ -3,7 +3,6 @@ package main.java.com.biszku.taskTracker;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,7 @@ public class FileHandler implements Observer {
     private final TasksTracker tasksTracker;
 
     public FileHandler(String fileName, TasksTracker tasksTracker) {
-        this.filePath = Paths.get(fileName);
+        this.filePath = Path.of(fileName);
         this.tasksTracker = tasksTracker;
         tasksTracker.addObserver(this);
     }

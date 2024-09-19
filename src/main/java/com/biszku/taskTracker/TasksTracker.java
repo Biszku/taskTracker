@@ -34,6 +34,7 @@ public class TasksTracker implements Observable {
     }
 
     private Stack<String> createCommandStack() {
+
         Stack<String> commandsStack = new Stack<>();
         String[] commandStructure = readInput().toLowerCase().split(" ");
 
@@ -101,7 +102,10 @@ public class TasksTracker implements Observable {
     private void addTask(Stack<String> commands) {
 
         try {
-            String description = commands.pop();
+            String description = "";
+            while(!commands.isEmpty()) {
+                description =description + " " + commands.pop();
+            }
             Task newTask = new Task(++idCounter, description);
             tasks.add(newTask);
         } catch (EmptyStackException e) {
