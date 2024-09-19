@@ -5,45 +5,49 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FileHandler implements Observer {
 
     private final Path filePath;
-    private final TasksTracker tasks;
+    private final TasksTracker tasksTracker;
 
-    public FileHandler(String fileName, TasksTracker tasks) {
+    public FileHandler(String fileName, TasksTracker tasksTracker) {
         this.filePath = Paths.get(fileName);
-        this.tasks = tasks;
-        tasks.addObserver(this);
+        this.tasksTracker = tasksTracker;
+        tasksTracker.addObserver(this);
     }
 
-    public void loadFromFile() {
+    public List<Task> loadFromFile() {
 
         if (!Files.exists(filePath)) {
             try {
                 Files.createFile(filePath);
-                tasks.setIdCounter(0);
-                return;
+                return new ArrayList<>();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
+        List<Task> tasks = new ArrayList<>();
+
         try (BufferedReader reader = Files.newBufferedReader(filePath)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!Objects.equals(line, "[") && !Objects.equals(line, "]")){
-                    parseFromJSONToTask(line);
+                    tasks.add(parseFromJSONToTask(line));
                 }
             }
         } catch (IOException e) {
             System.out.println("Something went wrong during reading the file");
         }
+        return tasks;
     }
 
-    private void parseFromJSONToTask(String line) {
+    private Task parseFromJSONToTask(String line) {
         String[] plainLine = line.replace("\"","")
                 .replace("}","")
                 .replace("{","")
@@ -55,9 +59,7 @@ public class FileHandler implements Observer {
         LocalDate createdAt = LocalDate.parse(plainLine[3].split(":")[1]);
         LocalDate updatedAt = LocalDate.parse(plainLine[4].split(":")[1]);
 
-        tasks.setIdCounter(id);
-        tasks.getTasks().add(new Task(id, description, status,
-                createdAt, updatedAt));
+        return new Task(id, description, status, createdAt, updatedAt);
     }
 
     @Override
@@ -68,7 +70,7 @@ public class FileHandler implements Observer {
 
     private String convertToJSON() {
         String delimiter = "," + System.lineSeparator();
-        return tasks.getTasks().stream()
+        return tasksTracker.getTasks().stream()
                 .map(Task::toJSON)
                 .collect(Collectors.joining(delimiter, "[\n", "\n]"));
     }
