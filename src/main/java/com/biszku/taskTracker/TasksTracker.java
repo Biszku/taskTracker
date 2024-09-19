@@ -3,33 +3,21 @@ package main.java.com.biszku.taskTracker;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class TasksTracker implements Observable {
+public class TasksTracker implements Observable  {
 
-    private static final Scanner scanner = new Scanner(System.in);
-    private static int idCounter = 0;
-    private final List<Observer> observers;
+    private static int idCounter;
     private final List<Task> tasks;
+    private final List<Observer> observers;
 
     public TasksTracker() {
         observers = new ArrayList<>();
-        tasks = new ArrayList<>(40);
+        tasks = new ArrayList<>();
+
+        FileHandler fileHandler = new FileHandler("tasks.json", this);
+        fileHandler.loadFromFile();
     }
 
     public void run() {
-        FileHandler fileHandler = new FileHandler("tasks.json", this);
-        fileHandler.loadFromFile();
-        readInput();
-    }
-
-    public List<Task> getTasks() {
-        return tasks;
-    }
-
-    public void setIdCounter(int idCounter) {
-        TasksTracker.idCounter = idCounter;
-    }
-
-    private void readInput() {
 
         while (true) {
             try {
@@ -42,10 +30,17 @@ public class TasksTracker implements Observable {
         }
     }
 
-    private Stack<String> createCommandStack() {
+    public List<Task> getTasks() {
+        return tasks;
+    }
 
+    public void setIdCounter(int idCounter) {
+        TasksTracker.idCounter = idCounter;
+    }
+
+    private Stack<String> createCommandStack() {
         Stack<String> commandsStack = new Stack<>();
-        String[] commandStructure = scanner.nextLine().toLowerCase().split(" ");
+        String[] commandStructure = readInput().toLowerCase().split(" ");
 
         try {
             commandStructure[1] = commandStructure[1].toUpperCase();
@@ -64,6 +59,10 @@ public class TasksTracker implements Observable {
         }
 
         return commandsStack;
+    }
+
+    private String readInput() {
+        return new Scanner(System.in).nextLine();
     }
 
     private IllegalArgumentException createIllegalArgumentException(String message) {
