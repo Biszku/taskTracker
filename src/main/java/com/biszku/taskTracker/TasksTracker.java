@@ -11,10 +11,10 @@ public class TasksTracker implements Observable  {
 
     public TasksTracker() {
         observers = new ArrayList<>();
-        tasks = new ArrayList<>();
 
         FileHandler fileHandler = new FileHandler("tasks.json", this);
-        fileHandler.loadFromFile();
+        tasks = fileHandler.loadFromFile();
+        idCounter = !tasks.isEmpty() ? tasks.get(tasks.size() - 1).getId() : 0;
     }
 
     public void run() {
