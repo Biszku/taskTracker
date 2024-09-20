@@ -33,9 +33,9 @@ public class FileHandler implements Observer {
 
         List<Task> tasks = new ArrayList<>();
 
-        try (BufferedReader reader = Files.newBufferedReader(filePath)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+            for (String line : lines) {
                 if (!Objects.equals(line, "[") && !Objects.equals(line, "]")){
                     tasks.add(parseFromJSONToTask(line));
                 }

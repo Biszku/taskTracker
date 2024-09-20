@@ -156,27 +156,14 @@ public class TasksTracker implements Observable {
 
         try {
             int taskId = Integer.parseInt(commands.pop());
-            return findTaskIndexById(taskId);
+            int taskIndex = Collections.binarySearch(tasks,
+                            new Task(taskId, ""),
+                            Comparator.comparingInt(Task::getId)
+            );
+            return taskIndex;
         } catch (EmptyStackException e) {
             throw createEmptyStackException("add <description>");
         }
-    }
-
-    private int findTaskIndexById(int taskId) {
-        int startIndex = 0;
-        int endIndex = tasks.size() - 1;
-
-        while (startIndex <= endIndex) {
-            int middleIndex = (startIndex + endIndex) / 2;
-            if (tasks.get(middleIndex).getId() == taskId) {
-                return middleIndex;
-            } else if (tasks.get(middleIndex).getId() < taskId) {
-                startIndex = middleIndex + 1;
-            } else {
-                endIndex = middleIndex - 1;
-            }
-        }
-        return -1;
     }
 
     private void printTasks(Stack<String> commands) {
