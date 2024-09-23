@@ -56,10 +56,10 @@ public class FileHandler implements Observer {
         int id = Integer.parseInt(plainLine[0].split(":")[1]);
         String description = plainLine[1].split(":")[1];
         Status status = Status.valueOf(plainLine[2].split(":")[1]);
-        LocalDate createdAt = LocalDate.parse(plainLine[3].split(":")[1]);
-        LocalDate updatedAt = LocalDate.parse(plainLine[4].split(":")[1]);
+        LocalDate created = LocalDate.parse(plainLine[3].split(":")[1]);
+        LocalDate updated = LocalDate.parse(plainLine[4].split(":")[1]);
 
-        return new Task(id, description, status, createdAt, updatedAt);
+        return new Task(id, description, status, created, updated);
     }
 
     @Override
