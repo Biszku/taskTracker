@@ -36,7 +36,7 @@ public class FileHandler implements Observer {
         try {
             List<String> lines = Files.readAllLines(filePath);
             for (String line : lines) {
-                if (!Objects.equals(line, "[") && !Objects.equals(line, "]")){
+                if (lineContainsTask(line)) {
                     tasks.add(parseFromJSONToTask(line));
                 }
             }
@@ -44,6 +44,10 @@ public class FileHandler implements Observer {
             System.out.println("Something went wrong during reading the file");
         }
         return tasks;
+    }
+
+    private boolean lineContainsTask(String line) {
+        return !Objects.equals(line, "[") && !Objects.equals(line, "]")  && !Objects.equals(line, "");
     }
 
     private Task parseFromJSONToTask(String line) {
@@ -55,7 +59,7 @@ public class FileHandler implements Observer {
 
         int id = Integer.parseInt(plainLine[0].split(":")[1]);
         String description = plainLine[1].split(":")[1];
-        Status status = Status.valueOf(plainLine[2].split(":")[1]);
+        Status status = Status.fromString(plainLine[2].split(":")[1]);
         LocalDate created = LocalDate.parse(plainLine[3].split(":")[1]);
         LocalDate updated = LocalDate.parse(plainLine[4].split(":")[1]);
 
