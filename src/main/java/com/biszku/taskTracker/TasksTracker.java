@@ -2,9 +2,12 @@ package main.java.com.biszku.taskTracker;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TasksTracker implements Observable {
 
+    private String command;
     private static int idCounter;
     private final List<Task> tasks;
     private final List<Observer> observers;
@@ -13,7 +16,7 @@ public class TasksTracker implements Observable {
         observers = new ArrayList<>();
         FileHandler fileHandler = new FileHandler("tasks.json", this);
         tasks = fileHandler.loadFromFile();
-        idCounter = !tasks.isEmpty() ? tasks.get(tasks.size() - 1).getId() : 0;
+        idCounter = tasks.isEmpty() ? 0 : tasks.get(tasks.size() - 1).getId();
     }
 
     public List<Task> getTasks() {
@@ -24,8 +27,8 @@ public class TasksTracker implements Observable {
 
         while (true) {
             try {
-                Stack<String> commands = createCommandStack();
-                boolean executed = executeCommand(commands);
+                handleInput();
+                boolean executed = executeCommand();
                 if (!executed) break;
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
@@ -33,28 +36,37 @@ public class TasksTracker implements Observable {
         }
     }
 
-    private Stack<String> createCommandStack() {
+    private void handleInput() {
+        command = readInput();
+        String transformedCommand = transformCommand("^(task-cli).*");
+        if (transformedCommand.isEmpty()) throw createIllegalArgumentException("\u001B[31m" +
+                "Invalid syntax!\n" +
+                "Enter command in format \"task-cli <operationType> <arguments>\"" +
+                "\u001B[0m");
+    }
 
-        Stack<String> commandsStack = new Stack<>();
-        String[] commandStructure = readInput().toLowerCase().split(" ");
-
-        try {
-            commandStructure[1] = commandStructure[1].toUpperCase();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw createIllegalArgumentException("Invalid syntax!\n" +
-                    "Enter command in format \"task-cli <operationType>\"");
+    private String transformCommand(String regex) {
+        String prefix = "";
+        if (getMatcher(regex).matches()) {
+            prefix = getArgument(regex);
+            command = command.replace(prefix, "");
+            return prefix;
         }
+        return prefix;
+    }
 
-        for (int i = commandStructure.length - 1; i >= 0; i--) {
-            commandsStack.push(commandStructure[i]);
-        }
+    private String getArgument(String regex) {
+        Matcher matcher = getMatcher(regex);
+        String argument = "";
+        if (matcher.find()) argument = matcher.group(1);
+        return argument;
+    }
 
-        if (!Objects.equals(commandsStack.pop(), "task-cli")) {
-            throw createIllegalArgumentException("Invalid syntax!\n" +
-                    "Enter command in format \"task-cli <operationType>\"");
-        }
+    private Matcher getMatcher(String regex) {
 
-        return commandsStack;
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(command);
+        return matcher;
     }
 
     private IllegalArgumentException createIllegalArgumentException(String message) {
@@ -65,29 +77,28 @@ public class TasksTracker implements Observable {
         return new Scanner(System.in).nextLine();
     }
 
-    private boolean executeCommand(Stack<String> commands) {
-        String operationType = commands.pop();
-
+    private boolean executeCommand() {
+        String operationType = transformCommand("^(\\s\\S+).*").strip();
         switch (operationType) {
-            case "ADD":
-                addTask(commands);
+            case "add":
+                addTask();
                 break;
-            case "UPDATE":
-                updateTask(commands);
+            case "update":
+                updateTask();
                 break;
-            case "DELETE":
-                deleteTask(commands);
+            case "delete":
+                deleteTask();
                 break;
-            case "MARK-IN-PROGRESS":
-                markAsInProgress(commands);
+            case "mark-in-progress":
+                markAsInProgress();
                 break;
-            case "MARK-DONE":
-                markAsDone(commands);
+            case "mark-done":
+                markAsDone();
                 break;
-            case "LIST":
-                printTasks(commands);
+            case "list":
+                printTasks();
                 break;
-            case "EXIT":
+            case "exit":
                 return false;
             default:
                 System.out.println("\u001B[31m" +
@@ -99,18 +110,14 @@ public class TasksTracker implements Observable {
         return true;
     }
 
-    private void addTask(Stack<String> commands) {
+    private void addTask() {
 
-        try {
-            String description = "";
-            while(!commands.isEmpty()) {
-                description =description + " " + commands.pop();
-            }
-            Task newTask = new Task(++idCounter, description);
-            tasks.add(newTask);
-        } catch (EmptyStackException e) {
-            throw createEmptyStackException("add <description>");
-        }
+        String description = transformCommand("^(\\s\"\\S*\")$").strip()
+                .replaceAll("\"", "");
+        if (description.isEmpty()) throw createIllegalArgumentException("Invalid description!");
+        Task newTask = new Task(++idCounter, description);
+        tasks.add(newTask);
+        System.out.printf("Task added successfully (ID: %d)%n", idCounter);
         notifyObservers();
     }
 
@@ -119,61 +126,57 @@ public class TasksTracker implements Observable {
                 "Enter arguments in format: " + message + "\u001B[0m");
     }
 
-    private void updateTask(Stack<String> commands) {
-        int taskIndex = findTaskIndexById(commands);
+    private void updateTask() {
+        int id = Integer.parseInt(transformCommand("^(\\s\\d+).*").strip());
+        int taskIndex = findTaskIndexById(id);
 
-        try {
-            String description = commands.pop();
-            tasks.get(taskIndex).update(description);
-        } catch (EmptyStackException e) {
-            throw createEmptyStackException("add <description>");
-        }
+        String description = transformCommand("^(\\s\"\\S*\")$").strip()
+                .replaceAll("\"", "");
+        tasks.get(taskIndex).update(description);
         notifyObservers();
     }
 
-    private void deleteTask(Stack<String> commands) {
-        int taskIndex = findTaskIndexById(commands);
+    private void deleteTask() {
+        int id = Integer.parseInt(transformCommand("^(\\s\\d+)$").strip());
+        int taskIndex = findTaskIndexById(id);
 
         tasks.remove(taskIndex);
+        System.out.printf("Task deleted successfully (ID: %d)%n", id);
         notifyObservers();
     }
 
-    private void markAsInProgress(Stack<String> commands) {
-        int taskIndex = findTaskIndexById(commands);
+    private void markAsInProgress() {
+        int id = Integer.parseInt(transformCommand("^(\\s\\d+)$").strip());
+        int taskIndex = findTaskIndexById(id);
 
         tasks.get(taskIndex).markAsInProgress();
         notifyObservers();
     }
 
-    private void markAsDone(Stack<String> commands) {
-        int taskIndex = findTaskIndexById(commands);
+    private void markAsDone() {
+        int id = Integer.parseInt(transformCommand("^(\\s\\d+)$").strip());
+        int taskIndex = findTaskIndexById(id);
 
         tasks.get(taskIndex).markAsDone();
         notifyObservers();
     }
 
-    private int findTaskIndexById(Stack<String> commands) {
-
-        try {
-            int taskId = Integer.parseInt(commands.pop());
+    private int findTaskIndexById(int id) {
             int taskIndex = Collections.binarySearch(tasks,
-                            new Task(taskId, ""),
-                            Comparator.comparingInt(Task::getId)
-            );
+                    new Task(id, ""),
+                    Comparator.comparingInt(Task::getId));
+            if (taskIndex < 0) throw createIllegalArgumentException("Task not found!");
             return taskIndex;
-        } catch (EmptyStackException e) {
-            throw createEmptyStackException("add <description>");
-        }
     }
 
-    private void printTasks(Stack<String> commands) {
+    private void printTasks() {
         Status status = null;
 
         try {
-            if (!commands.isEmpty()) status = Status.valueOf(commands.pop());
+            if (!command.isEmpty()) status = Status.valueOf(transformCommand("^(\\s\\S+)$").strip());
             tasks.stream().filter(getTaskPredicate(status)).forEach(System.out::println);
         } catch (IllegalArgumentException e) {
-            System.out.println("Unknown status");
+            throw createIllegalArgumentException("Invalid status!");
         }
     }
 
