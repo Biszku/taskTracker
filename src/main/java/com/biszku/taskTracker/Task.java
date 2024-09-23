@@ -8,20 +8,21 @@ public class Task {
     private final int id;
     private String description;
     private Status status;
-    private final LocalDate createdAt;
-    private LocalDate updatedAt;
+    private final LocalDate created;
+    private LocalDate updated;
 
     public Task(int id, String description) {
+
         this(id, description, Status.TODO, LocalDate.now(), LocalDate.now());
     }
 
     public Task(int id, String description, Status status,
-                LocalDate createdAt, LocalDate updatedAt) {
+                LocalDate created, LocalDate updated) {
         this.id = id;
         this.description = description;
         this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.created = created;
+        this.updated = updated;
     }
 
     public int getId() {
@@ -34,17 +35,20 @@ public class Task {
 
     public void update(String description) {
         this.description = description;
-        this.updatedAt = LocalDate.now();
+        this.updated = LocalDate.now();
+        System.out.printf("Task updated successfully (ID: %d)%n", id);
     }
 
     public void markAsInProgress() {
         this.status = Status.IN_PROGRESS;
-        this.updatedAt = LocalDate.now();
+        this.updated = LocalDate.now();
+        System.out.printf("Task marked as in-progress (ID: %d)%n", id);
     }
 
     public void markAsDone() {
         this.status = Status.DONE;
-        this.updatedAt = LocalDate.now();
+        this.updated = LocalDate.now();
+        System.out.printf("Task marked as done (ID: %d)%n", id);
     }
 
     public String toJSON() {
@@ -53,18 +57,18 @@ public class Task {
                 .add("\"id\":\"" + id + "\"")
                 .add("\"description\":\"" + description + "\"")
                 .add("\"status\":\"" + status + "\"")
-                .add("\"createdAt\":\"" + createdAt + "\"")
-                .add("\"updatedAt\":\"" + updatedAt + "\"")
+                .add("\"created\":\"" + created + "\"")
+                .add("\"updated\":\"" + updated + "\"")
                 .toString();
     }
 
     @Override
     public String toString() {
 
-        return ("id = %d " +
-                "description = %s " +
-                "status = %s " +
-                "created = %s " +
-                "updated = %s").formatted(id, description, status, createdAt, updatedAt);
+        return ("ID: %d, " +
+                "Description: %s, " +
+                "Status: %s, " +
+                "Created: %s, " +
+                "Updated: %s").formatted(id, description, status, created, updated);
     }
 }
