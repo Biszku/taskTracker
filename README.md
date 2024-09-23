@@ -65,4 +65,8 @@ task-cli list <status>
 #output:
 #ID: 1, Description: Task description, Status: <status>, Created: Date, Updated: Date
 #...
+
+#close the application
+task-cli exit
+#output: Closing application...
 ```

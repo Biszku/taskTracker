@@ -80,28 +80,17 @@ public class TasksTracker implements Observable {
     private boolean executeCommand() {
         String operationType = transformCommand("^(\\s\\S+).*").strip();
         switch (operationType) {
-            case "add":
-                addTask();
-                break;
-            case "update":
-                updateTask();
-                break;
-            case "delete":
-                deleteTask();
-                break;
-            case "mark-in-progress":
-                markAsInProgress();
-                break;
-            case "mark-done":
-                markAsDone();
-                break;
-            case "list":
-                printTasks();
-                break;
-            case "exit":
+            case "add" -> addTask();
+            case "update" -> updateTask();
+            case "delete" -> deleteTask();
+            case "mark-in-progress" -> markAsInProgress();
+            case "mark-done" -> markAsDone();
+            case "list" -> printTasks();
+            case "exit" -> {
+                System.out.println("Closing application...");
                 return false;
-            default:
-                System.out.println("\u001B[31m" +
+            }
+            default -> System.out.println("\u001B[31m" +
                         "Unknown command!\n" +
                         "Enter one of the following commands\n" +
                         "add, update, delete, mark-in-progress, mark-done, list, exit" +
