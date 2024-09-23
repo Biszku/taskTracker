@@ -2,18 +2,16 @@ package main.java.com.biszku.taskTracker;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TasksTracker implements Observable {
 
-    private String command;
+    private CommandHandler commandHandler;
     private static int idCounter;
     private final List<Task> tasks;
-    private final List<Observer> observers;
+    private final List<Observer> observers = new ArrayList<>();
 
     public TasksTracker() {
-        observers = new ArrayList<>();
+
         FileHandler fileHandler = new FileHandler("tasks.json", this);
         tasks = fileHandler.loadFromFile();
         idCounter = tasks.isEmpty() ? 0 : tasks.get(tasks.size() - 1).getId();
@@ -27,7 +25,8 @@ public class TasksTracker implements Observable {
 
         while (true) {
             try {
-                handleInput();
+                commandHandler = new CommandHandler();
+                commandHandler.handleInput();
                 boolean executed = executeCommand();
                 if (!executed) break;
             } catch (IllegalArgumentException e) {
@@ -36,49 +35,8 @@ public class TasksTracker implements Observable {
         }
     }
 
-    private void handleInput() {
-        command = readInput();
-        String transformedCommand = transformCommand("^(task-cli).*");
-        if (transformedCommand.isEmpty()) throw createIllegalArgumentException("\u001B[31m" +
-                "Invalid syntax!\n" +
-                "Enter command in format \"task-cli <operationType> <arguments>\"" +
-                "\u001B[0m");
-    }
-
-    private String transformCommand(String regex) {
-        String prefix = "";
-        if (getMatcher(regex).matches()) {
-            prefix = getArgument(regex);
-            command = command.replace(prefix, "");
-            return prefix;
-        }
-        return prefix;
-    }
-
-    private String getArgument(String regex) {
-        Matcher matcher = getMatcher(regex);
-        String argument = "";
-        if (matcher.find()) argument = matcher.group(1);
-        return argument;
-    }
-
-    private Matcher getMatcher(String regex) {
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(command);
-        return matcher;
-    }
-
-    private IllegalArgumentException createIllegalArgumentException(String message) {
-        return new IllegalArgumentException("\u001B[31m" + message + "\u001B[0m");
-    }
-
-    private String readInput() {
-        return new Scanner(System.in).nextLine();
-    }
-
     private boolean executeCommand() {
-        String operationType = transformCommand("^(\\s\\S+).*").strip();
+        String operationType = commandHandler.getCommandSlice("^(\\s\\S+).*");
         switch (operationType) {
             case "add" -> addTask();
             case "update" -> updateTask();
@@ -101,9 +59,9 @@ public class TasksTracker implements Observable {
 
     private void addTask() {
 
-        String description = transformCommand("^(\\s\"\\S*\")$").strip()
+        String description = commandHandler.getCommandSlice("^(\\s\"\\S*\")$")
                 .replaceAll("\"", "");
-        if (description.isEmpty()) throw createIllegalArgumentException("Invalid description!");
+        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Invalid description!");
         Task newTask = new Task(++idCounter, description);
         tasks.add(newTask);
         System.out.printf("Task added successfully (ID: %d)%n", idCounter);
@@ -116,17 +74,18 @@ public class TasksTracker implements Observable {
     }
 
     private void updateTask() {
-        int id = Integer.parseInt(transformCommand("^(\\s\\d+).*").strip());
+        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+).*"));
         int taskIndex = findTaskIndexById(id);
 
-        String description = transformCommand("^(\\s\"\\S*\")$").strip()
+        String description = commandHandler.getCommandSlice("^(\\s\"\\S*\")$")
                 .replaceAll("\"", "");
+        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Invalid description!");
         tasks.get(taskIndex).update(description);
         notifyObservers();
     }
 
     private void deleteTask() {
-        int id = Integer.parseInt(transformCommand("^(\\s\\d+)$").strip());
+        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+)$"));
         int taskIndex = findTaskIndexById(id);
 
         tasks.remove(taskIndex);
@@ -135,7 +94,7 @@ public class TasksTracker implements Observable {
     }
 
     private void markAsInProgress() {
-        int id = Integer.parseInt(transformCommand("^(\\s\\d+)$").strip());
+        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+)$"));
         int taskIndex = findTaskIndexById(id);
 
         tasks.get(taskIndex).markAsInProgress();
@@ -143,7 +102,7 @@ public class TasksTracker implements Observable {
     }
 
     private void markAsDone() {
-        int id = Integer.parseInt(transformCommand("^(\\s\\d+)$").strip());
+        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+)$"));
         int taskIndex = findTaskIndexById(id);
 
         tasks.get(taskIndex).markAsDone();
@@ -154,7 +113,7 @@ public class TasksTracker implements Observable {
             int taskIndex = Collections.binarySearch(tasks,
                     new Task(id, ""),
                     Comparator.comparingInt(Task::getId));
-            if (taskIndex < 0) throw createIllegalArgumentException("Task not found!");
+            if (taskIndex < 0) throw commandHandler.handleIllegalArgument("Task not found!");
             return taskIndex;
     }
 
@@ -162,10 +121,10 @@ public class TasksTracker implements Observable {
         Status status = null;
 
         try {
-            if (!command.isEmpty()) status = Status.valueOf(transformCommand("^(\\s\\S+)$").strip());
+            if (!commandHandler.isEmpty()) status = Status.valueOf(commandHandler.getCommandSlice("^(\\s\\S+)$"));
             tasks.stream().filter(getTaskPredicate(status)).forEach(System.out::println);
         } catch (IllegalArgumentException e) {
-            throw createIllegalArgumentException("Invalid status!");
+            throw commandHandler.handleIllegalArgument("Invalid status!");
         }
     }
 
@@ -176,11 +135,6 @@ public class TasksTracker implements Observable {
     @Override
     public void addObserver(Observer observer) {
         observers.add(observer);
-    }
-
-    @Override
-    public void removeObserver(Observer observer) {
-        observers.remove(observer);
     }
 
     @Override
