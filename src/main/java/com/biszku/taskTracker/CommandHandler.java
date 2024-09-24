@@ -8,7 +8,7 @@ public class CommandHandler {
 
     private String command;
 
-    public void handleInput() {
+    public void readCommand() {
         command = readInput();
         String transformedCommand = getCommandSlice("^(task-cli).*");
         if (transformedCommand.isEmpty()) throw handleIllegalArgument("\u001B[31m" +

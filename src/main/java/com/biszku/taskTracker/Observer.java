@@ -1,6 +1,7 @@
 package main.java.com.biszku.taskTracker;
 
-public interface Observer {
+import java.util.List;
 
-    void update();
+public interface Observer {
+    void update(List<Task> tasks);
 }

@@ -4,7 +4,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        TasksTracker tasksTracker = new TasksTracker();
+        TasksTracker tasksTracker = new TasksTracker("tasks.json");
         tasksTracker.run();
     }
 }

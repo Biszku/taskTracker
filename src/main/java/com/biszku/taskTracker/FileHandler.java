@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 public class FileHandler implements Observer {
 
     private final Path filePath;
-    private final TasksTracker tasksTracker;
+    private final Observable tasksTracker;
 
-    public FileHandler(String fileName, TasksTracker tasksTracker) {
+    public FileHandler(String fileName, Observable tasksTracker) {
         this.filePath = Path.of(fileName);
         this.tasksTracker = tasksTracker;
-        tasksTracker.addObserver(this);
+        this.tasksTracker.addObserver(this);
     }
 
     public List<Task> loadFromFile() {
@@ -46,6 +46,10 @@ public class FileHandler implements Observer {
         return tasks;
     }
 
+    public void removeObserver() {
+        tasksTracker.removeObserver(this);
+    }
+
     private boolean lineContainsTask(String line) {
         return !Objects.equals(line, "[") && !Objects.equals(line, "]")  && !Objects.equals(line, "");
     }
@@ -67,14 +71,14 @@ public class FileHandler implements Observer {
     }
 
     @Override
-    public void update() {
-        String tasksInJSON = convertToJSON();
+    public void update(List<Task> tasks) {
+        String tasksInJSON = convertToJSON(tasks);
         saveToFile(tasksInJSON);
     }
 
-    private String convertToJSON() {
+    private String convertToJSON(List<Task> tasks) {
         String delimiter = "," + System.lineSeparator();
-        return tasksTracker.getTasks().stream()
+        return tasks.stream()
                 .map(Task::toJSON)
                 .collect(Collectors.joining(delimiter, "[\n", "\n]"));
     }
