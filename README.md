@@ -28,7 +28,7 @@ javac -d out .\src\main\java\com\biszku\taskTracker\*.java
 
 3. Run the application:
 ```bash
-java -cp out main.java.com.biszku.taskTracker.Main
+java -cp out main.java.com.biszku.taskTracker.TasksTracker
 ```
 
 ## Usage
@@ -61,9 +61,9 @@ task-cli list
 #...
 
 #list tasks by status
-task-cli list <status>
+task-cli list [status]
 #output:
-#ID: 1, Description: Task description, Status: <status>, Created: Date, Updated: Date
+#ID: 1, Description: Task description, Status: [status], Created: Date, Updated: Date
 #...
 
 #close the application

@@ -10,6 +10,11 @@ public class TasksTracker implements Observable {
     private final List<Task> tasks;
     private final List<Observer> observers = new ArrayList<>();
 
+    public static void main(String[] args) {
+        TasksTracker tasksTracker = new TasksTracker("tasks.json");
+        tasksTracker.run();
+    }
+
     public TasksTracker(String fileName) {
         commandHandler = new CommandHandler();
         FileHandler fileHandler = new FileHandler(fileName, this);
