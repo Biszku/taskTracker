@@ -28,7 +28,7 @@ javac -d out .\src\main\java\com\biszku\taskTracker\*.java
 
 3. Run the application:
 ```bash
-java -cp out main.java.com.biszku.taskTracker.TasksTracker
+java -cp out main.java.com.biszku.tasksTracker.TasksTracker
 ```
 
 ## Usage

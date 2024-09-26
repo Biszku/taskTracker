@@ -1,4 +1,4 @@
-package main.java.com.biszku.taskTracker;
+package main.java.com.biszku.tasksTracker;
 
 import java.util.*;
 import java.util.function.Predicate;

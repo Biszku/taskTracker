@@ -1,4 +1,4 @@
-package main.java.com.biszku.taskTracker;
+package main.java.com.biszku.tasksTracker;
 
 import java.util.Scanner;
 import java.util.regex.Matcher;
