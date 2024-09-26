@@ -62,7 +62,7 @@ public class TasksTracker implements Observable {
 
         String description = commandHandler.getCommandSlice("^(\\s\"\\S*\")$")
                 .replaceAll("\"", "");
-        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Invalid description!");
+        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Enter description in format: \"description\"");
         Task newTask = new Task(++TasksTracker.idCounter, description);
         tasks.add(newTask);
         System.out.printf("Task added successfully (ID: %d)%n", TasksTracker.idCounter);
@@ -75,7 +75,7 @@ public class TasksTracker implements Observable {
 
         String description = commandHandler.getCommandSlice("^(\\s\"\\S*\")$")
                 .replaceAll("\"", "");
-        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Invalid description!");
+        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Enter description in format: \"description\"");
         tasks.get(taskIndex).update(description);
         notifyObservers();
     }
