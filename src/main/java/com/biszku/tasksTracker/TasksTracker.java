@@ -24,7 +24,7 @@ public class TasksTracker {
         try {
             handleAction();
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            System.out.println(renderError(e.getMessage()));
         }
     }
 
@@ -42,13 +42,16 @@ public class TasksTracker {
         }
     }
 
+    private String renderError(String message) {
+        return "\u001B[31mERROR! " + message + "\u001B[0m";
+    }
+
     private String renderOperationTypeError() {
         return """
-                \u001B[31m\
                 Unknown command!
                 Enter one of the following commands
-                add, update, delete, mark-in-progress, mark-done, list, exit\
-                \u001B[0m""";
+                add, update, delete, mark-in-progress, mark-done, list, exit
+                """;
     }
 
     private void addTask() {

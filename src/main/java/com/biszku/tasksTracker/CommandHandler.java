@@ -15,19 +15,35 @@ public class CommandHandler {
     }
 
     public String getActionType(List<String> command) {
-        return command.get(ACTION_POSITION);
+        try {
+            return command.get(ACTION_POSITION);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return "";
+        }
     }
 
     public String getDescription(List<String> command) {
-        return command.get(DESCRIPTION_POSITION);
+        try {
+            return command.get(DESCRIPTION_POSITION);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Description is missing");
+        }
     }
 
     public String getNewDescription(List<String> command) {
-        return command.get(NEW_DESCRIPTION_POSITION);
+        try {
+            return command.get(NEW_DESCRIPTION_POSITION);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Description is missing");
+        }
     }
 
     public int getId(List<String> command) {
-        return Integer.parseInt(command.get(ID_POSITION));
+        try {
+            return Integer.parseInt(command.get(ID_POSITION));
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Id is missing");
+        }
     }
 
     public Status getStatus(List<String> command) {
