@@ -1,145 +1,84 @@
 package main.java.com.biszku.tasksTracker;
 
 import java.util.*;
-import java.util.function.Predicate;
 
-public class TasksTracker implements Observable {
-
+public class TasksTracker {
+    private final Tasks tasks;
     private final CommandHandler commandHandler;
-    private static int idCounter;
-    private final List<Task> tasks;
-    private final List<Observer> observers = new ArrayList<>();
+    private List<String> command;
 
-    public static void main(String[] args) {
-        TasksTracker tasksTracker = new TasksTracker("tasks.json");
-        tasksTracker.run();
+    public static void main(String[] command) {
+
+        TasksTracker tasksTracker = new TasksTracker();
+        tasksTracker.execute(command);
     }
 
-    public TasksTracker(String fileName) {
+    public TasksTracker() {
         commandHandler = new CommandHandler();
-        FileHandler fileHandler = new FileHandler(fileName, this);
-        tasks = fileHandler.loadFromFile();
-        TasksTracker.idCounter = tasks.isEmpty() ? 0 : tasks.get(tasks.size() - 1).getId();
+        tasks = new Tasks();
     }
 
-    public void run() {
+    public void execute(String[] command) {
+        this.command = Arrays.asList(command);
 
-        while (true) {
-            try {
-                commandHandler.readCommand();
-                boolean executed = executeCommand();
-                if (!executed) break;
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            }
+        try {
+            handleAction();
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    private boolean executeCommand() {
-        String operationType = commandHandler.getCommandSlice("^(\\s\\S+).*");
-        switch (operationType) {
+    private void handleAction() {
+        String actionTypeType = commandHandler.getActionType(this.command);
+
+        switch (actionTypeType) {
             case "add" -> addTask();
             case "update" -> updateTask();
             case "delete" -> deleteTask();
             case "mark-in-progress" -> markAsInProgress();
             case "mark-done" -> markAsDone();
             case "list" -> printTasks();
-            case "exit" -> {
-                System.out.println("Closing application...");
-                return false;
-            }
-            default -> System.out.println("""
-                    \u001B[31m\
-                    Unknown command!
-                    Enter one of the following commands
-                    add, update, delete, mark-in-progress, mark-done, list, exit\
-                    \u001B[0m""");
+            default -> throw new IllegalArgumentException(renderOperationTypeError());
         }
-        return true;
+    }
+
+    private String renderOperationTypeError() {
+        return """
+                \u001B[31m\
+                Unknown command!
+                Enter one of the following commands
+                add, update, delete, mark-in-progress, mark-done, list, exit\
+                \u001B[0m""";
     }
 
     private void addTask() {
-
-        String description = commandHandler.getCommandSlice("^(\\s\"\\S*\")$")
-                .replaceAll("\"", "");
-        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Enter description in format: \"description\"");
-        Task newTask = new Task(++TasksTracker.idCounter, description);
-        tasks.add(newTask);
-        System.out.printf("Task added successfully (ID: %d)%n", TasksTracker.idCounter);
-        notifyObservers();
+        String description = commandHandler.getDescription(this.command);
+        tasks.createAndAddTask(description);
     }
 
     private void updateTask() {
-        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+).*"));
-        int taskIndex = findTaskIndexById(id);
-
-        String description = commandHandler.getCommandSlice("^(\\s\"\\S*\")$")
-                .replaceAll("\"", "");
-        if (description.isEmpty()) throw commandHandler.handleIllegalArgument("Enter description in format: \"description\"");
-        tasks.get(taskIndex).update(description);
-        notifyObservers();
+        int id = commandHandler.getId(this.command);
+        String newDescription = commandHandler.getNewDescription(this.command);
+        tasks.update(id, newDescription);
     }
 
     private void deleteTask() {
-        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+)$"));
-        int taskIndex = findTaskIndexById(id);
-
-        tasks.remove(taskIndex);
-        System.out.printf("Task deleted successfully (ID: %d)%n", id);
-        notifyObservers();
+        int id = commandHandler.getId(this.command);
+        tasks.remove(id);
     }
 
     private void markAsInProgress() {
-        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+)$"));
-        int taskIndex = findTaskIndexById(id);
-
-        tasks.get(taskIndex).markAsInProgress();
-        notifyObservers();
+        int id = commandHandler.getId(this.command);
+        tasks.markAsInProgress(id);
     }
 
     private void markAsDone() {
-        int id = Integer.parseInt(commandHandler.getCommandSlice("^(\\s\\d+)$"));
-        int taskIndex = findTaskIndexById(id);
-
-        tasks.get(taskIndex).markAsDone();
-        notifyObservers();
-    }
-
-    private int findTaskIndexById(int id) {
-        int taskIndex = Collections.binarySearch(tasks,
-                new Task(id, ""),
-                Comparator.comparingInt(Task::getId));
-        if (taskIndex < 0) throw commandHandler.handleIllegalArgument("Task not found!");
-        return taskIndex;
+        int id = commandHandler.getId(this.command);
+        tasks.markAsDone(id);
     }
 
     private void printTasks() {
-        Status status = null;
-
-        try {
-            if (!commandHandler.isEmpty()) status = Status.valueOf(commandHandler.getCommandSlice("^(\\s\\S+)$"));
-            tasks.stream().filter(getTaskPredicate(status)).forEach(System.out::println);
-        } catch (IllegalArgumentException e) {
-            throw commandHandler.handleIllegalArgument("Invalid status!");
-        }
-    }
-
-    private Predicate<Task> getTaskPredicate(Status status) {
-        return status == null ? task -> true : task -> task.getStatus().equals(status);
-    }
-
-    @Override
-    public void addObserver(Observer observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void removeObserver(Observer observer) {
-        observers.remove(observer);
-    }
-
-    @Override
-    public void notifyObservers() {
-        observers.forEach(observer -> observer.update(tasks));
+        Status status = commandHandler.getStatus(this.command);
+        tasks.printTasks(status);
     }
 }

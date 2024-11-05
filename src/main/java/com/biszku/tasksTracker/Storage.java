@@ -9,15 +9,27 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class FileHandler implements Observer {
+public class Storage {
 
     private final Path filePath;
-    private final Observable tasksTracker;
 
-    public FileHandler(String fileName, Observable tasksTracker) {
+    public Storage(String fileName) {
         this.filePath = Path.of(fileName);
-        this.tasksTracker = tasksTracker;
-        this.tasksTracker.addObserver(this);
+    }
+
+    public String convertToJSON(List<Task> tasks) {
+        String delimiter = "," + System.lineSeparator();
+        return tasks.stream()
+                .map(Task::toJSON)
+                .collect(Collectors.joining(delimiter, "[\n", "\n]"));
+    }
+
+    public void saveToFile(String tasksInJSON) {
+        try {
+            Files.writeString(filePath, tasksInJSON);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<Task> loadFromFile() {
@@ -46,10 +58,6 @@ public class FileHandler implements Observer {
         return tasks;
     }
 
-    public void removeObserver() {
-        tasksTracker.removeObserver(this);
-    }
-
     private boolean lineContainsTask(String line) {
         return !Objects.equals(line, "[") && !Objects.equals(line, "]")  && !Objects.equals(line, "");
     }
@@ -68,27 +76,5 @@ public class FileHandler implements Observer {
         LocalDate updated = LocalDate.parse(plainLine[4].split(":")[1]);
 
         return new Task(id, description, status, created, updated);
-    }
-
-    @Override
-    public void update(List<Task> tasks) {
-        String tasksInJSON = convertToJSON(tasks);
-        saveToFile(tasksInJSON);
-    }
-
-    private String convertToJSON(List<Task> tasks) {
-        String delimiter = "," + System.lineSeparator();
-        return tasks.stream()
-                .map(Task::toJSON)
-                .collect(Collectors.joining(delimiter, "[\n", "\n]"));
-    }
-
-    private void saveToFile(String tasksInJSON) {
-
-        try {
-            Files.writeString(filePath, tasksInJSON);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

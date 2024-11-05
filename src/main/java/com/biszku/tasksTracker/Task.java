@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.StringJoiner;
 
 public class Task {
-
     private final int id;
     private String description;
     private Status status;
