@@ -1,5 +1,3 @@
-package main.java.com.biszku.tasksTracker;
-
 import java.util.*;
 
 public class TasksTracker {
@@ -24,7 +22,7 @@ public class TasksTracker {
         try {
             handleAction();
         } catch (IllegalArgumentException e) {
-            System.out.println(renderError(e.getMessage()));
+            System.out.println(e.getMessage());
         }
     }
 
@@ -40,10 +38,6 @@ public class TasksTracker {
             case "list" -> printTasks();
             default -> throw new IllegalArgumentException(renderOperationTypeError());
         }
-    }
-
-    private String renderError(String message) {
-        return "\u001B[31mERROR! " + message + "\u001B[0m";
     }
 
     private String renderOperationTypeError() {

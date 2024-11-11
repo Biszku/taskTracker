@@ -1,5 +1,3 @@
-package main.java.com.biszku.tasksTracker;
-
 import java.util.List;
 
 public class CommandHandler {

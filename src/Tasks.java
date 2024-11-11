@@ -1,5 +1,3 @@
-package main.java.com.biszku.tasksTracker;
-
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -9,7 +7,7 @@ public class Tasks {
     private static int idCounter;
 
     public Tasks() {
-        this.storage = new Storage("tasks.json");
+        this.storage = new Storage("../tasks.json");
         this.tasks = storage.loadFromFile();
 
         Tasks.idCounter = !tasks.isEmpty() ? tasks.get(tasks.size() - 1).getId() : 0;

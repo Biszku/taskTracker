@@ -1,5 +1,3 @@
-package main.java.com.biszku.tasksTracker;
-
 public enum Status {
     TODO("to-do"),
     IN_PROGRESS("in-progress"),
