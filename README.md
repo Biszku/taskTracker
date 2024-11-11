@@ -18,54 +18,50 @@ allows users to create, read, update, delete and list tasks.
 1. Clone the repository
 ```bash
 git clone https://github.com/Biszku/taskTracker
-cd taskTracker
+cd taskTracker/src
 ```
 
 2. Compile the source code:
 ```bash
-javac -d out .\src\main\java\com\biszku\taskTracker\*.java
+javac *.java
 ```
 
 3. Run the application:
 ```bash
-java -cp out main.java.com.biszku.tasksTracker.TasksTracker
+java TasksTracker <operation-type> <operation-parameters>
 ```
 
 ## Usage
 
 ```bash
 #add a task
-Example input: task-cli add "Task description"
+Example input: add "Task description"
 #output: Task added successfully (ID: 1)
 
 #update a task
 Example input: #output: Task updated successfully (ID: 1)
 
 #delete a task
-Example input: task-cli delete 1
+Example input: delete 1
 #output: Task deleted successfully (ID: 1)
 
 #mark a task as in-progress
-Example input: task-cli mark-in-progress 1
+Example input: mark-in-progress 1
 #output: Task marked as in-progress (ID: 1)
 
 #mark a task as done
-Example input: task-cli mark-done 1
+Example input: mark-done 1
 #output: Task marked as done (ID: 1)
 
 #list all tasks
-Example input: task-cli list
+Example input: list
 #output:
 #ID: 1, Description: Task description, Status: Status, Created: Date, Updated: Date
 #...
 
 #list tasks by status
-Example input: task-cli list [status]
+Example input: list [status]
 #output:
 #ID: 1, Description: Task description, Status: [status], Created: Date, Updated: Date
 #...
-
-#close the application
-Example input: task-cli exit
-#output: Closing application...
 ```
