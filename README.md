@@ -60,7 +60,7 @@ Example input: list
 #...
 
 #list tasks by status
-Example input: list [status]
+Example input: list <status>
 #output:
 #ID: 1, Description: Task description, Status: [status], Created: Date, Updated: Date
 #...
