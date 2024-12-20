@@ -18,17 +18,17 @@ allows users to create, read, update, delete and list tasks.
 1. Clone the repository
 ```bash
 git clone https://github.com/Biszku/taskTracker
-cd taskTracker/src
+cd taskTracker
 ```
 
 2. Compile the source code:
 ```bash
-javac *.java
+javac .\src\*.java
 ```
 
 3. Run the application:
 ```bash
-java TasksTracker <operation-type> <operation-parameters>
+java -cp .\src\ TasksTracker <operation-type> <operation-parameters>
 ```
 
 ## Usage
